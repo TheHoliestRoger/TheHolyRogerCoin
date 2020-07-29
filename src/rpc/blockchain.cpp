@@ -12,6 +12,7 @@
 #include <coins.h>
 #include <consensus/validation.h>
 #include <validation.h>
+#include <init.h>
 #include <core_io.h>
 #include <policy/feerate.h>
 #include <policy/policy.h>
@@ -957,6 +958,8 @@ UniValue gettxoutsetinfo(const JSONRPCRequest& request)
     CCoinsStats stats;
     FlushStateToDisk();
     if (GetUTXOStats(pcoinsdbview.get(), stats)) {
+        CAmount moneySupply = stats.nTotalAmount;
+        CAmount blacklistedSum = supplyCache.GetBlackListedSum();
         ret.push_back(Pair("height", (int64_t)stats.nHeight));
         ret.push_back(Pair("bestblock", stats.hashBlock.GetHex()));
         ret.push_back(Pair("transactions", (int64_t)stats.nTransactions));
@@ -965,6 +968,8 @@ UniValue gettxoutsetinfo(const JSONRPCRequest& request)
         ret.push_back(Pair("hash_serialized_2", stats.hashSerialized.GetHex()));
         ret.push_back(Pair("disk_size", stats.nDiskSize));
         ret.push_back(Pair("total_amount", ValueFromAmount(stats.nTotalAmount)));
+        ret.push_back(Pair("blacklisted",ValueFromAmount(blacklistedSum)));
+        ret.push_back(Pair("circulatingsupply",ValueFromAmount(moneySupply - blacklistedSum)));
     } else {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
     }

@@ -51,15 +51,8 @@ void LoadSporksFromDB()
         mapSporksActive[spork.nSporkID] = spork;
         std::time_t result = spork.nValue;
 
-        // If SPORK Value is greater than 1,000,000 assume it's actually a Date and then convert to a more readable format
-        if (spork.nValue > 1000000) {
-            LogPrintf("%s : loaded spork %s with value %d : %s", __func__,
-                      sporkManager.GetSporkNameByID(spork.nSporkID), spork.nValue,
-                      std::ctime(&result));
-        } else {
-            LogPrintf("%s : loaded spork %s with value %d\n", __func__,
-                      sporkManager.GetSporkNameByID(spork.nSporkID), spork.nValue);
-        }
+        LogPrintf("%s : loaded spork %s with value %d\n", __func__,
+                  sporkManager.GetSporkNameByID(spork.nSporkID), spork.nValue);
     }
 }
 

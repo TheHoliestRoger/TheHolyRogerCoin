@@ -36,6 +36,7 @@
 #include <script/sigcache.h>
 #include <scheduler.h>
 #include <sporkdb.h>
+#include <supplycache.h>
 #include <timedata.h>
 #include <txdb.h>
 #include <txmempool.h>
@@ -94,6 +95,8 @@ static CZMQNotificationInterface* pzmqNotificationInterface = nullptr;
 #endif
 
 static const char* FEE_ESTIMATES_FILENAME="fee_estimates.dat";
+
+SupplyCache supplyCache;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -1624,6 +1627,28 @@ bool AppInitMain()
     if (!est_filein.IsNull())
         ::feeEstimator.Read(est_filein);
     fFeeEstimatesInitialized = true;
+
+// ********************************************************* Step 7.5: load supply cache
+
+    {
+        uiInterface.InitMessage(_("Loading supply cache..."));
+        supplyCache.Initialize();
+        SupplyCache::ReadResult readResult = supplyCache.Read();
+
+        if (readResult == SupplyCache::FileError) {
+            LogPrintf("Missing supply cache file - supplycache.dat, will try to recreate it\n");
+            supplyCache.SumNonCirculatingAmounts();
+            supplyCache.Write();
+        } else if (readResult != SupplyCache::Ok) {
+            LogPrintf("Error reading supplycache.dat: ");
+
+            if (readResult == SupplyCache::IncorrectFormat) {
+                LogPrintf("magic number is ok but data has invalid format\n");
+            } else {
+                LogPrintf("file format is unknown or invalid, please fix it manually\n");
+            }
+        }
+	}
 
     // ********************************************************* Step 8: load wallet
 #ifdef ENABLE_WALLET

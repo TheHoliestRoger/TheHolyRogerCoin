@@ -6,6 +6,7 @@
 #ifndef BITCOIN_INIT_H
 #define BITCOIN_INIT_H
 
+#include <supplycache.h>
 #include <string>
 
 class CScheduler;
@@ -15,6 +16,8 @@ namespace boost
 {
 class thread_group;
 } // namespace boost
+
+extern SupplyCache supplyCache;
 
 void StartShutdown();
 bool ShutdownRequested();

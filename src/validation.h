@@ -289,6 +289,7 @@ double GuessVerificationProgress(const ChainTxData& data, const CBlockIndex* pin
 uint64_t CalculateCurrentUsage();
 
 bool CheckTransactionForNoBlackListedAddresses(const CTransaction& tx, const Consensus::Params& consensusParams);
+bool GetBannedPubkeys(std::set<CScript>& bannedPubkeys, const Consensus::Params& consensusParams);
 
 /**
  *  Mark one block file as pruned.

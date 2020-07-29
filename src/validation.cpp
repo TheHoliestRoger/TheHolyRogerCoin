@@ -41,6 +41,7 @@
 #include <warnings.h>
 #include <spork.h>
 #include <sporknames.h>
+#include <supplycache.h>
 
 #include <algorithm>
 #include <future>
@@ -539,6 +540,11 @@ static bool CheckTransactionForNoBlackListedAddresses(std::set<CScript>& bannedP
     }
 
     return freeFromBlackListed;
+}
+
+bool GetBannedPubkeys(std::set<CScript>& bannedPubkeys, const Consensus::Params& consensusParams)
+{
+    return GetBannedPubkeysFromSporkReferenceBlock(bannedPubkeys, consensusParams);
 }
 
 bool CheckTransactionForNoBlackListedAddresses(const CTransaction& tx, const Consensus::Params& consensusParams)
@@ -3553,6 +3559,33 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
             return error("AcceptBlock(): ReceivedBlockTransactions failed");
     } catch (const std::runtime_error& e) {
         return AbortNode(state, std::string("System error: ") + e.what());
+    }
+
+    // Update supply cache
+    if (supplyCache.HasReferenceList()) {
+        if (supplyCache.IsDirty()) {
+            LogPrintf("Detected dirty supply cache. Refreshing...\n");
+            supplyCache.RefreshReferenceBlackList();
+            supplyCache.SumNonCirculatingAmounts();
+            LogPrintf("Supply cache updated.\n");
+        } else {
+            CAmount blackListedAmount = 0;
+
+            supplyCache.SumNonCirculatingAmounts(block, blackListedAmount);
+
+            supplyCache.AddBlackListed(blackListedAmount);
+            supplyCache.Write();
+        }
+    } else if (IsSporkActive(SPORK_1_BLACKLIST_BLOCK_REFERENCE)) {
+        uint64_t sporkBlockValue = (GetSporkValue(SPORK_1_BLACKLIST_BLOCK_REFERENCE) >> 16) & 0xffffffffffff; // 48-bit
+
+        // This means we just got the reference block!
+        if (chainActive[sporkBlockValue]) {
+            LogPrintf("Reference blacklist block received. Refreshing supply cache...\n");
+            supplyCache.SumNonCirculatingAmounts();
+            supplyCache.Write();
+            LogPrintf("Supply cache created or refreshed\n");
+        }
     }
 
     if (fCheckForPruning)
