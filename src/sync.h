@@ -11,47 +11,35 @@
 #include <condition_variable>
 #include <thread>
 #include <mutex>
-
-
-////////////////////////////////////////////////
-//                                            //
-// THE SIMPLE DEFINITION, EXCLUDING DEBUG CODE //
-//                                            //
-////////////////////////////////////////////////
+#include <boost/date_time/period.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 /*
+
 CCriticalSection mutex;
-    std::recursive_mutex mutex;
+    boost::recursive_timed_mutex mutex;
 
 LOCK(mutex);
-    std::unique_lock<std::recursive_mutex> criticalblock(mutex);
+    boost::unique_lock<boost::recursive_timed_mutex> criticalblock(mutex);
 
 LOCK2(mutex1, mutex2);
-    std::unique_lock<std::recursive_mutex> criticalblock1(mutex1);
-    std::unique_lock<std::recursive_mutex> criticalblock2(mutex2);
+    boost::unique_lock<boost::recursive_timed_mutex> criticalblock1(mutex1);
+    boost::unique_lock<boost::recursive_timed_mutex> criticalblock2(mutex2);
 
 TRY_LOCK(mutex, name);
-    std::unique_lock<std::recursive_mutex> name(mutex, std::try_to_lock_t);
+    boost::unique_lock<boost::recursive_timed_mutex> name(mutex, boost::try_to_lock_t);
 
 ENTER_CRITICAL_SECTION(mutex); // no RAII
     mutex.lock();
 
 LEAVE_CRITICAL_SECTION(mutex); // no RAII
     mutex.unlock();
+
  */
 
-///////////////////////////////
-//                           //
-// THE ACTUAL IMPLEMENTATION //
-//                           //
-///////////////////////////////
 
-/**
- * Template mixin that adds -Wthread-safety locking
- * annotations to a subset of the mutex API.
- */
-template <typename PARENT>
-class LOCKABLE AnnotatedMixin : public PARENT
+/* Template mixin that adds -Wthread-safety locking annotations to a subset of the mutex API */
+template <typename PARENT> class LOCKABLE AnnotatedMixin : public PARENT
 {
 public:
     void lock() EXCLUSIVE_LOCK_FUNCTION()
@@ -67,6 +55,11 @@ public:
     bool try_lock() EXCLUSIVE_TRYLOCK_FUNCTION(true)
     {
         return PARENT::try_lock();
+    }
+
+    bool try_lock_for(const boost::chrono::duration<long int, boost::ratio<1l, 1000l> >& duration) EXCLUSIVE_TRYLOCKFOR_FUNCTION(true)
+    {
+        return PARENT::try_lock_for(duration);
     }
 };
 
@@ -88,10 +81,10 @@ void static inline DeleteLock(void* cs) {}
 #define AssertLockNotHeld(cs) AssertLockNotHeldInternal(#cs, __FILE__, __LINE__, &cs)
 
 /**
- * Wrapped mutex: supports recursive locking, but no waiting
+ * Wrapped mutex: supports recursive locking
  * TODO: We should move away from using the recursive lock by default.
  */
-class CCriticalSection : public AnnotatedMixin<std::recursive_mutex>
+class CCriticalSection : public AnnotatedMixin<std::recursive_timed_mutex>
 {
 public:
     ~CCriticalSection() {
@@ -122,7 +115,7 @@ private:
     {
         EnterCritical(pszName, pszFile, nLine, (void*)(lock.mutex()));
 #ifdef DEBUG_LOCKCONTENTION
-        if (!lock.try_lock()) {
+        if (!lock.try_lock_for(boost::chrono::milliseconds(500))) {
             PrintLockContention(pszName, pszFile, nLine);
 #endif
             lock.lock();
