@@ -125,6 +125,9 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *_platformStyle, const NetworkStyle *
         move(QApplication::desktop()->availableGeometry().center() - frameGeometry().center());
     }
 
+    /* Open CSS when configured */
+    this->setStyleSheet(GUIUtil::loadStyleSheet());
+
     QString windowTitle = tr(PACKAGE_NAME) + " - ";
 #ifdef ENABLE_WALLET
     enableWallet = WalletModel::isWalletEnabled();
@@ -157,7 +160,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *_platformStyle, const NetworkStyle *
     {
         /** Create wallet frame and make it the central widget */
         walletFrame = new WalletFrame(_platformStyle, this);
-        walletFrame->setStyleSheet(QString::fromUtf8("QFrame {background-color:#222; color:#fff;}\n"));
+        // walletFrame->setStyleSheet(QString::fromUtf8("QFrame {background-color:#222; color:#fff;}\n"));
         setCentralWidget(walletFrame);
     } else
 #endif // ENABLE_WALLET

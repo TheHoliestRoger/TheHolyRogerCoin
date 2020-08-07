@@ -1,0 +1,83 @@
+WalletFram/*e {
+border-image: url(':/images/drk_walletFrame_bg') 0 0 0 0 stretch stretch;
+border-top:0px solid #000;
+margin:0;
+padding:0;
+}
+
+QStatusBar {
+background-color:#000000;
+}
+
+QProgressBar { 
+color: rgb(255,255,255);
+}
+
+QProgressBar::chunk { 
+background: #aaaaaa;
+}
+
+.QFrame {
+background-color:transparent;
+border:0px solid #f5de02;
+}
+
+QMenuBar {
+background-color:#000000;
+}
+
+QMenuBar::item {
+background-color:#000000;
+color:#e2cc02;
+}
+
+QMenuBar::item:selected {
+background-color:#f5de02;
+}
+
+QMenu {
+background-color:#000000;
+border:1px solid #333333;
+}
+
+QMenu::item {
+color:#e2cc02;
+}
+
+QMenu::item:selected {
+background-color:#f5de02;
+color:#000000;
+}
+
+QToolBar {
+background-color:#aaaaaa;
+border:0px solid #000;
+padding:0;
+margin:0;
+}
+
+QToolBar > QToolButton {
+background-color:#aaaaaa;
+border:0px solid #f5de02;
+min-height:2.5em;
+padding: 0em 1em;
+font-weight:bold;
+color:#808080;
+}
+
+QToolBar > QToolButton:hover {
+background-color:#B2B2B2;
+color:#F7F7F7;
+font-weight:bold;
+}
+
+QToolBar > QToolButton:checked {
+background-color:#f5de02;
+color:#F7F7F7;
+font-weight:bold;
+}
+
+QMessageBox {
+background-color:#F7F7F7;
+}*/
+
